@@ -73,7 +73,7 @@ Clean Architecture + Feature-Based 조합 패턴. 의존성 방향: `domain ← 
 - 인증 토큰은 apiClient의 request interceptor가 쿠키에서 읽어 Bearer 헤더로 자동 주입. Repository에서 수동 헤더 설정 불필요
 - 401 응답 시 apiClient의 response interceptor가 refresh token으로 자동 갱신 후 원본 요청을 재시도. 갱신 실패 시 토큰 클리어
 - 에러 처리는 apiClient의 response interceptor에서 공통 처리. Repository에서 try/catch 불필요
-- 게시글 생성처럼 멱등성이 필요한 엔드포인트는 `Idempotency-Key` 헤더(UUID v4) 자동 주입 필요
+- 멱등성이 필요한 엔드포인트(현재 `POST /v1/posts`)는 apiClient의 request interceptor가 `IDEMPOTENT_ROUTES` 매칭으로 `Idempotency-Key` 헤더(UUID v4)를 자동 주입. 새 멱등 엔드포인트 추가 시 `apiClient.ts`의 배열에 등록
 
 ## 환경 변수
 
