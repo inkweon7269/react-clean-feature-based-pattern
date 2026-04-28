@@ -1,0 +1,46 @@
+domain:
+  - changed-files:
+      - any-glob-to-any-file: "src/domain/**"
+
+infrastructure:
+  - changed-files:
+      - any-glob-to-any-file: "src/infrastructure/**"
+
+features:
+  - changed-files:
+      - any-glob-to-any-file: "src/features/**"
+
+pages:
+  - changed-files:
+      - any-glob-to-any-file: "src/pages/**"
+
+router:
+  - changed-files:
+      - any-glob-to-any-file: "src/router/**"
+
+providers:
+  - changed-files:
+      - any-glob-to-any-file: "src/providers/**"
+
+shared:
+  - changed-files:
+      - any-glob-to-any-file: "src/shared/**"
+
+test:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/**/*.test.*"
+          - "src/test/**"
+          - "e2e/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.md"
+          - "docs/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".coderabbit.yaml"

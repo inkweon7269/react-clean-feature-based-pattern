@@ -23,6 +23,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'html', 'json', 'json-summary'],
       include: ['src/domain/**', 'src/features/**', 'src/infrastructure/**'],
       exclude: ['src/shared/ui/**'],
     },
