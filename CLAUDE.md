@@ -38,6 +38,8 @@ Clean Architecture + Feature-Based 조합 패턴. 의존성 방향: `domain ← 
 - `repository.ts` — 역할별 인터페이스 (Commands, Queries로 분리)
 - `usecases/` — 비즈니스 로직이 있는 UseCase만 생성. 단순 CRUD 패스스루는 UseCase 없이 훅에서 repository 직접 사용
 
+**`src/domain/common/`** — 도메인 횡단 공통 타입 (예: `PaginationParams`/`PaginationMeta`/`PaginatedResult<T>`). 특정 도메인에 속하지 않는 순수 타입만 둔다.
+
 **`src/infrastructure/`** — 어댑터 (domain 인터페이스 구현), 도메인별 그룹핑
 - `api/apiClient.ts` — 공용 axios 인스턴스 (환경 변수 baseURL, 인증 토큰 interceptor, 공통 에러 처리)
 - `api/{도메인}/` — Repository 구현체

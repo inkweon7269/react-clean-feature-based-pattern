@@ -1,7 +1,7 @@
+import type { PaginatedResult } from '@/domain/common/pagination';
 import type {
   CreatePostInput,
   CreatePostResult,
-  PaginatedResult,
   Post,
   PostsPaginationParams,
   UpdatePostInput,

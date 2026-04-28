@@ -118,10 +118,13 @@ Clean Architecture의 핵심 규칙은 하나입니다:
 
 ```
 src/
-├── domain/auth/              ← 순수 TypeScript (외부 import 금지)
-│   ├── entities.ts           ← 타입 + 순수 함수
-│   └── repository.ts         ← Commands / Queries 인터페이스
-│   (UseCase는 비즈니스 로직이 추가될 때 usecases/ 하위에 생성)
+├── domain/                   ← 순수 TypeScript (외부 import 금지)
+│   ├── common/               ← 도메인 횡단 공통 타입
+│   │   └── pagination.ts     ← PaginationParams, PaginationMeta, PaginatedResult<T>
+│   └── auth/                 ← 도메인별 폴더
+│       ├── entities.ts       ← 타입 + 순수 함수
+│       └── repository.ts     ← Commands / Queries 인터페이스
+│       (UseCase는 비즈니스 로직이 추가될 때 usecases/ 하위에 생성)
 │
 ├── infrastructure/           ← 외부 도구 사용 (axios, zustand 등)
 │   ├── api/apiClient.ts      ← 토큰 주입 + 401 자동 refresh
@@ -1624,13 +1627,19 @@ features/profile/useLogout.ts
 ### 1단계: Domain
 
 ```
+[x] domain/common/pagination.ts — PaginationParams, PaginationMeta,
+    PaginatedResult<T> (도메인 횡단 공통 타입. 페이지네이션 필요한 도메인은 재사용)
 [x] domain/posts/entities.ts — Post, CreatePostInput, UpdatePostInput,
-    PostsPaginationParams, PaginationMeta, PaginatedResult<T> 타입
+    PostsPaginationParams (PaginationParams 확장 + 도메인별 필터)
 [x] domain/posts/repository.ts — PostsQueries { findAllPaginated, getById }
                                   + PostsCommands { create, update, delete }
 [ ] domain/posts/usecases/ — 비즈니스 로직이 있는 것만 생성
     Posts는 모두 패스스루이므로 UseCase 미생성
 ```
+
+**규칙:** 여러 도메인이 공유하는 타입(페이지네이션 메타, 정렬 옵션 등)은
+`domain/common/`에 두고 도메인 entities에서 `extends`로 확장한다. 같은 모양을
+도메인마다 중복 정의하지 않는다.
 
 ### 2단계: Infrastructure
 

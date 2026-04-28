@@ -1,3 +1,5 @@
+import type { PaginationParams } from '@/domain/common/pagination';
+
 export interface Post {
   id: number;
   userId: number;
@@ -20,24 +22,8 @@ export interface UpdatePostInput {
   isPublished: boolean;
 }
 
-export interface PostsPaginationParams {
-  page?: number;
-  limit?: number;
+export interface PostsPaginationParams extends PaginationParams {
   isPublished?: boolean;
-}
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  totalElements: number;
-  totalPages: number;
-  isFirst: boolean;
-  isLast: boolean;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  meta: PaginationMeta;
 }
 
 export interface CreatePostResult {
