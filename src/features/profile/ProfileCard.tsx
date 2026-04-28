@@ -1,6 +1,7 @@
+import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Skeleton } from '@/shared/ui/skeleton';
-import { Button } from '@/shared/ui/button';
+import { Button, buttonVariants } from '@/shared/ui/button';
 import { useProfile } from './useProfile';
 import { useLogout } from './useLogout';
 
@@ -40,9 +41,12 @@ export function ProfileCard() {
           <span className="text-muted-foreground">가입일: </span>
           <span>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</span>
         </div>
+        <Link to="/posts" className={buttonVariants({ variant: 'default' }) + ' w-full mt-4'}>
+          내 게시글 보기
+        </Link>
         <Button
           variant="outline"
-          className="w-full mt-4"
+          className="w-full"
           onClick={() => logoutMutation.mutate()}
           disabled={logoutMutation.isPending}
         >
