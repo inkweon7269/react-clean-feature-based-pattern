@@ -1,5 +1,17 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { useAuthStore } from '@/infrastructure/store/auth/authStore';
+
+const IDEMPOTENT_ROUTES: ReadonlyArray<{ method: string; urlPattern: RegExp }> = [
+  { method: 'post', urlPattern: /^\/v1\/posts\/?$/ },
+];
+
+function needsIdempotencyKey(method: string | undefined, url: string | undefined): boolean {
+  if (!method || !url) return false;
+  return IDEMPOTENT_ROUTES.some(
+    (route) => route.method === method.toLowerCase() && route.urlPattern.test(url),
+  );
+}
 
 interface RetriableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -18,6 +30,9 @@ apiClient.interceptors.request.use((config) => {
   const cfg = config as RetriableRequestConfig;
   if (accessToken && !cfg._skipAuth) {
     cfg.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  if (needsIdempotencyKey(cfg.method, cfg.url) && !cfg.headers['Idempotency-Key']) {
+    cfg.headers['Idempotency-Key'] = uuidv4();
   }
   return cfg;
 });

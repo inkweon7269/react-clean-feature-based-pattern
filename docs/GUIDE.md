@@ -118,10 +118,13 @@ Clean Architecture의 핵심 규칙은 하나입니다:
 
 ```
 src/
-├── domain/auth/              ← 순수 TypeScript (외부 import 금지)
-│   ├── entities.ts           ← 타입 + 순수 함수
-│   └── repository.ts         ← Commands / Queries 인터페이스
-│   (UseCase는 비즈니스 로직이 추가될 때 usecases/ 하위에 생성)
+├── domain/                   ← 순수 TypeScript (외부 import 금지)
+│   ├── common/               ← 도메인 횡단 공통 타입
+│   │   └── pagination.ts     ← PaginationParams, PaginationMeta, PaginatedResult<T>
+│   └── auth/                 ← 도메인별 폴더
+│       ├── entities.ts       ← 타입 + 순수 함수
+│       └── repository.ts     ← Commands / Queries 인터페이스
+│       (UseCase는 비즈니스 로직이 추가될 때 usecases/ 하위에 생성)
 │
 ├── infrastructure/           ← 외부 도구 사용 (axios, zustand 등)
 │   ├── api/apiClient.ts      ← 토큰 주입 + 401 자동 refresh
@@ -1619,38 +1622,53 @@ features/profile/useLogout.ts
 
 ## 10. 새 기능 추가 시 체크리스트
 
-"게시글 목록" 기능을 추가한다고 가정합시다 (백엔드 `/v1/posts/*` 사용).
+이 프로젝트에는 이미 **Posts 도메인**이 위 단계대로 구현되어 있습니다 (auth 도메인과 같은 구조). 새 도메인을 추가할 때는 동일한 순서로 진행하세요. 아래 예시는 실제 Posts 구현을 그대로 인용한 것입니다.
 
 ### 1단계: Domain
 
 ```
-[ ] domain/posts/entities.ts — Post, PostsPaginationParams 타입 정의 + 순수 함수
-[ ] domain/posts/repository.ts — PostsQueries { findAllPaginated, getById }, PostsCommands { create, update, delete }
-[ ] domain/posts/usecases/ — 비즈니스 로직이 있는 것만
-    예: 같은 사용자가 같은 제목 게시글을 만들 때 경고를 표시한다면 → CreatePost UseCase 생성
-        단순 패스스루면 UseCase 미생성
+[x] domain/common/pagination.ts — PaginationParams, PaginationMeta,
+    PaginatedResult<T> (도메인 횡단 공통 타입. 페이지네이션 필요한 도메인은 재사용)
+[x] domain/posts/entities.ts — Post, CreatePostInput, UpdatePostInput,
+    PostsPaginationParams (PaginationParams 확장 + 도메인별 필터)
+[x] domain/posts/repository.ts — PostsQueries { findAllPaginated, getById }
+                                  + PostsCommands { create, update, delete }
+[ ] domain/posts/usecases/ — 비즈니스 로직이 있는 것만 생성
+    Posts는 모두 패스스루이므로 UseCase 미생성
 ```
+
+**규칙:** 여러 도메인이 공유하는 타입(페이지네이션 메타, 정렬 옵션 등)은
+`domain/common/`에 두고 도메인 entities에서 `extends`로 확장한다. 같은 모양을
+도메인마다 중복 정의하지 않는다.
 
 ### 2단계: Infrastructure
 
 ```
-[ ] infrastructure/api/posts/PostsApiRepository.ts — Repository 구현
-[ ] infrastructure/query/posts/postsQueryKeys.ts — 계층형 query key
+[x] infrastructure/api/posts/PostsApiRepository.ts — 5개 메서드 구현
+[x] infrastructure/query/posts/postsQueryKeys.ts — 계층형 query key
     all / lists() / list(params) / details() / detail(id)
 [ ] infrastructure/store/posts/ — UI 상태가 필요한 경우만 (필터, 정렬 등)
 
-⚠️ 게시글 생성처럼 멱등성이 필요한 엔드포인트는 apiClient의 request 인터셉터에서
-   Idempotency-Key 헤더(UUID v4)를 자동 주입하도록 분기 추가
+⚠️ 멱등성이 필요한 엔드포인트(POST /v1/posts)는 apiClient의 request 인터셉터에서
+   Idempotency-Key 헤더(UUID v4)를 자동 주입.
+   → src/infrastructure/api/apiClient.ts의 IDEMPOTENT_ROUTES 배열에 등록
 ```
 
 ### 3단계: Features + Pages + Router
 
 ```
-[ ] features/posts-list/ — PostsList.tsx, usePosts.ts, __tests__/
-[ ] features/posts-detail/ — PostDetail.tsx, usePost.ts, __tests__/
-[ ] pages/PostsListPage.tsx, pages/PostDetailPage.tsx
-[ ] router/postsRoutes.ts → router/index.ts에 등록 (인증 가드 추가)
+[x] features/posts-list/ — PostsList.tsx, usePosts.ts (페이지네이션 컨트롤 포함)
+[x] features/posts-detail/ — PostDetail.tsx, usePost.ts
+[x] features/posts-create/ — CreatePostForm.tsx, useCreatePost.ts, createPostSchema.ts
+[x] features/posts-edit/ — EditPostForm.tsx, useUpdatePost.ts, useDeletePost.ts,
+                            editPostSchema.ts
+[x] pages/{PostsList,PostDetail,PostCreate,PostEdit}Page.tsx
+[x] router/postsRoutes.ts (4개 라우트, 모두 인증 가드)
+[x] router/index.ts 에 postsRoutes 등록
+[x] features/profile/ProfileCard.tsx 에 "내 게시글" 진입점 링크 추가
 ```
+
+여러 feature가 같은 도메인의 데이터를 참조해야 한다면(예: posts-edit이 게시글 데이터를 미리 로드), feature 간 직접 import 대신 **Pages 레이어에서 두 feature를 조합**합니다. 본 프로젝트에서 `PostEditPage`가 `posts-detail/usePost`로 데이터를 가져와 `posts-edit/EditPostForm`에 props로 주입하는 패턴이 그 예시입니다.
 
 ### UseCase 의사결정 트리
 

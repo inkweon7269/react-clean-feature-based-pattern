@@ -2,6 +2,8 @@
 
 Clean Architecture와 Feature-Based 패턴을 조합한 React CSR 프로젝트 템플릿.
 
+NestJS 백엔드(`/v1/auth`, `/v1/posts`)와 연동되는 회원가입/로그인/프로필/로그아웃 + 게시글 CRUD를 포함합니다.
+
 ## 기술 스택
 
 | 범주 | 도구 |
@@ -139,12 +141,12 @@ src/
 
 ### API 통신
 
-- 모든 API 경로는 `/v1` 접두사 사용 (예: `/v1/auth/login`, `/v1/auth/profile`)
+- 모든 API 경로는 `/v1` 접두사 사용 (예: `/v1/auth/login`, `/v1/posts`)
 - 서버 응답은 NestJS 표준 응답을 그대로 사용 (래퍼 없음). Repository에서 `data` 그대로 반환
 - 인증 토큰은 apiClient의 request interceptor가 쿠키에서 읽어 `Authorization: Bearer {token}` 헤더로 자동 주입
 - **401 응답 시** apiClient의 response interceptor가 refresh token으로 자동 갱신 후 원본 요청을 재시도. 동시 요청은 단일 큐로 합쳐 한 번만 갱신. 갱신 실패 시 토큰 클리어
 - 에러 처리는 apiClient의 response interceptor에서 공통 처리. Repository에서 수동 헤더 설정이나 try/catch 불필요
-- 멱등성이 필요한 엔드포인트(예: 게시글 생성)는 `Idempotency-Key` 헤더(UUID v4) 자동 주입 필요
+- 멱등성이 필요한 엔드포인트(현재 `POST /v1/posts`)는 apiClient가 `Idempotency-Key` 헤더(UUID v4)를 자동 주입. 새 멱등 엔드포인트 추가 시 `apiClient.ts`의 `IDEMPOTENT_ROUTES`에 등록
 
 ### UseCase 분리 기준
 
