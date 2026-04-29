@@ -1,13 +1,25 @@
 import { createRoute, redirect } from '@tanstack/react-router';
+import { z } from 'zod';
 import { rootRoute } from './rootRoute';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { useAuthStore } from '@/infrastructure/store/auth/authStore';
 
+const loginSearchSchema = z.object({
+  error: z.enum(['email_already_exists', 'email_not_verified', 'unknown']).optional(),
+  email: z.string().email().optional(),
+});
+
+const profileSearchSchema = z.object({
+  linked: z.literal('1').optional(),
+  error: z.enum(['link_conflict', 'email_not_verified']).optional(),
+});
+
 export const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
+  validateSearch: loginSearchSchema,
   beforeLoad: () => {
     const { isAuthenticated } = useAuthStore.getState();
     if (isAuthenticated) {
@@ -32,6 +44,7 @@ export const registerRoute = createRoute({
 export const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  validateSearch: profileSearchSchema,
   beforeLoad: () => {
     const { isAuthenticated } = useAuthStore.getState();
     if (!isAuthenticated) {
