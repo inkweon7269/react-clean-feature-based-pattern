@@ -5,7 +5,7 @@ import type {
   RegisterResult,
   User,
 } from '@/domain/auth/entities';
-import type { AuthRepository } from '@/domain/auth/repository';
+import type { AuthRepository, GoogleLinkInitiateResult } from '@/domain/auth/repository';
 import { apiClient } from '../apiClient';
 
 export class AuthApiRepository implements AuthRepository {
@@ -30,6 +30,15 @@ export class AuthApiRepository implements AuthRepository {
 
   async getProfile(): Promise<User> {
     const { data } = await apiClient.get<User>('/v1/auth/profile');
+    return data;
+  }
+
+  async unlinkGoogle(): Promise<void> {
+    await apiClient.delete<void>('/v1/auth/google/unlink');
+  }
+
+  async startGoogleLink(): Promise<GoogleLinkInitiateResult> {
+    const { data } = await apiClient.post<GoogleLinkInitiateResult>('/v1/auth/google/link');
     return data;
   }
 }
