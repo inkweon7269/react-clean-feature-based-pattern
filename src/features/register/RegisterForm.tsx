@@ -6,6 +6,7 @@ import { Input } from '@/shared/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { registerSchema, type RegisterFormValues } from './registerSchema';
 import { useRegister } from './useRegister';
+import { GoogleLoginButton } from '@/features/login/GoogleLoginButton';
 
 export function RegisterForm() {
   const {
@@ -95,6 +96,17 @@ export function RegisterForm() {
           >
             {registerMutation.isPending ? '가입 중...' : '회원가입'}
           </Button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">또는</span>
+            </div>
+          </div>
+
+          <GoogleLoginButton />
 
           <p className="text-sm text-center text-muted-foreground">
             이미 계정이 있으신가요?{' '}
