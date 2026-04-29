@@ -12,6 +12,14 @@ import { OAuthCallbackHandler } from '../OAuthCallbackHandler';
 import { useAuthStore } from '@/infrastructure/store/auth/authStore';
 
 function renderCallback(initialUrl: string) {
+  // useOAuthCallback reads window.location.hash directly. createMemoryHistory's
+  // initialEntries don't propagate to jsdom's window.location, so we set the
+  // hash explicitly here to match what the browser would expose at runtime.
+  const hashIndex = initialUrl.indexOf('#');
+  const pathname = hashIndex >= 0 ? initialUrl.slice(0, hashIndex) : initialUrl;
+  const hash = hashIndex >= 0 ? initialUrl.slice(hashIndex) : '';
+  window.location.hash = hash;
+
   const rootRoute = createRootRoute();
 
   const oauthCallbackRoute = createRoute({
@@ -44,7 +52,7 @@ function renderCallback(initialUrl: string) {
 
   const router = createRouter({
     routeTree: rootRoute.addChildren([oauthCallbackRoute, homeRoute, loginRoute]),
-    history: createMemoryHistory({ initialEntries: [initialUrl] }),
+    history: createMemoryHistory({ initialEntries: [pathname] }),
   });
 
   return { ...render(<RouterProvider router={router} />), router };
@@ -55,11 +63,13 @@ describe('useOAuthCallback', () => {
 
   beforeEach(() => {
     useAuthStore.getState().clearTokens();
+    window.location.hash = '';
     replaceStateSpy = vi.spyOn(window.history, 'replaceState');
   });
 
   afterEach(() => {
     replaceStateSpy.mockRestore();
+    window.location.hash = '';
   });
 
   it('login_success 시 토큰을 저장하고 /로 이동한다', async () => {
