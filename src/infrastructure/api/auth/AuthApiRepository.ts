@@ -3,6 +3,7 @@ import type {
   LoginCredentials,
   RegisterCredentials,
   RegisterResult,
+  UpdateProfileInput,
   User,
 } from '@/domain/auth/entities';
 import type { AuthRepository, GoogleLinkInitiateResult } from '@/domain/auth/repository';
@@ -31,6 +32,10 @@ export class AuthApiRepository implements AuthRepository {
   async getProfile(): Promise<User> {
     const { data } = await apiClient.get<User>('/v1/auth/profile');
     return data;
+  }
+
+  async updateProfile(input: UpdateProfileInput): Promise<void> {
+    await apiClient.patch<void>('/v1/auth/profile', input);
   }
 
   async unlinkGoogle(): Promise<void> {

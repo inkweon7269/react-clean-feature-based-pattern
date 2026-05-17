@@ -17,6 +17,9 @@ coverage
 .claude/settings.local.json
 .mcp.json
 
+# Agent Teams scratch directory (PRD/TASKS/GIT_SETUP/EVAL 중간 산출물)
+_workspace/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

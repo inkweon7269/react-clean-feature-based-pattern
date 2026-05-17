@@ -26,6 +26,10 @@ export interface RegisterResult {
   id: number;
 }
 
+export interface UpdateProfileInput {
+  name: string;
+}
+
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
