@@ -4,6 +4,7 @@ import { rootRoute } from './rootRoute';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { ProfileEditPage } from '@/pages/ProfileEditPage';
 import { useAuthStore } from '@/infrastructure/store/auth/authStore';
 
 const loginSearchSchema = z.object({
@@ -54,4 +55,16 @@ export const profileRoute = createRoute({
   component: ProfilePage,
 });
 
-export const authRoutes = [loginRoute, registerRoute, profileRoute];
+export const profileEditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile/edit',
+  beforeLoad: () => {
+    const { isAuthenticated } = useAuthStore.getState();
+    if (!isAuthenticated) {
+      throw redirect({ to: '/login' });
+    }
+  },
+  component: ProfileEditPage,
+});
+
+export const authRoutes = [loginRoute, registerRoute, profileRoute, profileEditRoute];

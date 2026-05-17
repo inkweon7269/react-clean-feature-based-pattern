@@ -89,7 +89,14 @@ export function ProfileCard() {
           <span>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</span>
         </div>
 
-        <Link to="/posts" className={buttonVariants({ variant: 'default' }) + ' w-full mt-4'}>
+        <Link
+          to="/profile/edit"
+          className={buttonVariants({ variant: 'outline' }) + ' w-full mt-4'}
+        >
+          프로필 수정
+        </Link>
+
+        <Link to="/posts" className={buttonVariants({ variant: 'default' }) + ' w-full'}>
           내 게시글 보기
         </Link>
 

@@ -3,6 +3,7 @@ import type {
   LoginCredentials,
   RegisterCredentials,
   RegisterResult,
+  UpdateProfileInput,
   User,
 } from './entities';
 
@@ -17,6 +18,7 @@ export interface AuthCommands {
   logout(): Promise<void>;
   unlinkGoogle(): Promise<void>;
   startGoogleLink(): Promise<GoogleLinkInitiateResult>;
+  updateProfile(input: UpdateProfileInput): Promise<void>;
 }
 
 export interface AuthQueries {

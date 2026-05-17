@@ -107,6 +107,42 @@ export const handlers = [
     return HttpResponse.json(mockUser);
   }),
 
+  http.patch('*/v1/auth/profile', async ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+
+    const body = (await request.json().catch(() => null)) as { name?: unknown } | null;
+
+    if (!body || typeof body.name !== 'string') {
+      return HttpResponse.json(
+        {
+          statusCode: 400,
+          message: ['name must be a string'],
+          error: 'Bad Request',
+        },
+        { status: 400 },
+      );
+    }
+
+    const trimmed = body.name.trim();
+    if (trimmed.length < 1 || trimmed.length > 30) {
+      return HttpResponse.json(
+        {
+          statusCode: 400,
+          message: ['name must be between 1 and 30 characters'],
+          error: 'Bad Request',
+        },
+        { status: 400 },
+      );
+    }
+
+    mockUser.name = trimmed;
+    mockUser.updatedAt = new Date().toISOString();
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.post('*/v1/auth/google/link', ({ request }) => {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
