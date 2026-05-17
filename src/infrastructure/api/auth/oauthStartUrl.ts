@@ -1,3 +1,3 @@
 export function getGoogleOAuthStartUrl(): string {
-  return `${import.meta.env.VITE_API_BASE_URL}/v1/auth/google`;
+  return new URL('/v1/auth/google', import.meta.env.VITE_API_BASE_URL).toString();
 }

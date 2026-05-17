@@ -41,7 +41,7 @@
 | `#error=link_conflict` | 연결: 다른 사용자에 이미 연결됐거나 본인이 이미 연결됨 |
 
 > 백엔드가 모든 값에 `encodeURIComponent`를 적용해 전달 (`google-auth.controller.ts:80, 85`). 프론트는 `URLSearchParams`로 자동 디코딩한다.
-
+>
 > `email_not_verified`는 로그인/연결 양쪽에서 올 수 있으므로 `useAuthStore.getState().isAuthenticated`로 컨텍스트를 판별해 라우팅한다.
 
 ---
@@ -50,7 +50,7 @@
 
 ### 2.1 신규 가입 / 재로그인
 
-```
+```text
 [/login] "Google로 계속" 클릭
   → window.location.href = `${VITE_API_BASE_URL}/v1/auth/google`
 [백엔드 → Google 동의 → 백엔드 callback]
@@ -72,7 +72,7 @@
 
 ### 2.3 Google 연결
 
-```
+```text
 [/profile] "Google 계정 연결" 클릭
   → axios.post('/v1/auth/google/link') (Bearer 자동 주입)
   → 응답 { authorizationUrl: 'https://accounts.google.com/...&state=...' }
@@ -87,7 +87,7 @@
 
 ### 2.4 Google 연결 해제
 
-```
+```text
 [/profile] "Google 연결 해제" 클릭
   → DELETE /v1/auth/google/unlink (Bearer 자동 주입)
   → 204: 성공 안내 / 404: "연결된 Google 계정이 없습니다"
@@ -129,10 +129,10 @@ startGoogleLink(): Promise<{ authorizationUrl: string }>;
 | 신규/수정 | 파일 | 역할 |
 |---|---|---|
 | 수정 | `api/auth/AuthApiRepository.ts` | `unlinkGoogle()`/`startGoogleLink()` 구현 |
-| 신규 | `api/auth/oauthFragment.ts` | hash 파서 (Pure 함수, `URLSearchParams` + 디코딩) |
-| 신규 | `api/auth/oauthStartUrl.ts` | OAuth 시작 URL 빌더 (`VITE_API_BASE_URL` 의존) |
+| 신규 | `domain/auth/oauthFragment.ts` | hash 파서 (Pure 함수, `URLSearchParams` + 디코딩) — 외부 의존 없는 순수 TS라 도메인 레이어에 위치 |
+| 신규 | `api/auth/oauthStartUrl.ts` | OAuth 시작 URL 빌더 (`VITE_API_BASE_URL` 의존, `URL` 생성자로 정규화) |
 
-`apiClient.ts` (토큰 주입/401 자동 refresh/멱등성) — **변경 없음**. Google 발급 토큰도 동일 JWT 구조라 그대로 동작.
+`apiClient.ts` — 공통 에러 계약을 `ApiError(message, status?)`로 확장 (호출자가 status 기반 분기 가능). 토큰 주입/401 자동 refresh/멱등성 동작은 그대로 유지.
 
 ### 3.3 Features
 

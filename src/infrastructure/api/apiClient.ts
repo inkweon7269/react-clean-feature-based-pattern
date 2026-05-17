@@ -88,9 +88,12 @@ apiClient.interceptors.response.use(
         originalConfig.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalConfig);
       } catch (refreshError) {
-        return Promise.reject(
-          refreshError instanceof Error ? refreshError : new ApiError('인증이 만료되었습니다', 401),
-        );
+        if (refreshError instanceof ApiError) {
+          return Promise.reject(refreshError);
+        }
+        const message =
+          refreshError instanceof Error ? refreshError.message : '인증이 만료되었습니다';
+        return Promise.reject(new ApiError(message, 401));
       }
     }
 

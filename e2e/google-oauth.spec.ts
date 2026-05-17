@@ -4,9 +4,9 @@ test.describe.configure({ mode: 'serial' });
 
 test.describe('Google OAuth - 콜백 fragment 처리 (UI 검증)', () => {
   test.beforeEach(async ({ page }) => {
+    await page.context().clearCookies();
     await page.goto('/');
     await page.evaluate(() => localStorage.clear());
-    await page.context().clearCookies();
   });
 
   test('로그인 콜백 성공 fragment는 토큰을 저장하고 /로 이동시킨다', async ({ page }) => {

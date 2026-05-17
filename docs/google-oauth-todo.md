@@ -34,7 +34,7 @@
 
 ### 1.2 Infrastructure
 
-- [ ] `src/infrastructure/api/auth/oauthFragment.ts` 신규
+- [ ] `src/domain/auth/oauthFragment.ts` 신규 (도메인 레이어 — 외부 의존 없는 순수 TS)
   - `parseOAuthFragment(hash: string): OAuthCallbackResult` Pure 함수
   - `URLSearchParams`로 자동 디코딩 (백엔드가 `encodeURIComponent` 적용)
   - 우선순위: `linked=true` → `error=...` → `accessToken+refreshToken` → `unknown`
@@ -205,7 +205,7 @@
 
 | 경로 | 역할 |
 |---|---|
-| `src/infrastructure/api/auth/oauthFragment.ts` | hash 파서 |
+| `src/domain/auth/oauthFragment.ts` | hash 파서 (순수 함수) |
 | `src/infrastructure/api/auth/oauthStartUrl.ts` | OAuth 시작 URL 빌더 |
 | `src/features/login/GoogleLoginButton.tsx` | 로그인 시작 버튼 |
 | `src/features/oauth/useOAuthCallback.ts` | 콜백 분기 훅 |
@@ -231,8 +231,11 @@
 | `src/router/index.ts` | `oauthRoutes` 등록 |
 | `src/test/mocks/handlers.ts` | unlink/link 핸들러 추가 |
 
+### 추가 수정
+
+- `src/infrastructure/api/apiClient.ts` — `ApiError(message, status?)` 클래스 도입, 응답 인터셉터가 모든 에러를 `ApiError`로 reject (status 기반 분기 가능). 토큰 주입/401 refresh/멱등성 동작은 그대로 유지.
+
 ### 변경 없음
 
-- `src/infrastructure/api/apiClient.ts` (토큰 주입/401 refresh/멱등성 그대로)
 - `src/infrastructure/store/auth/authStore.ts`
 - `src/features/login/useLogin.ts`, `src/features/profile/useLogout.ts`, `src/features/profile/useProfile.ts`

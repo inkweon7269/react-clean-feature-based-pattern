@@ -6,7 +6,7 @@ import { Input } from '@/shared/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { loginSchema, type LoginFormValues } from './loginSchema';
 import { useLogin } from './useLogin';
-import { GoogleLoginButton } from './GoogleLoginButton';
+import { GoogleLoginButton } from '@/features/login/GoogleLoginButton';
 
 const oauthErrorMessages: Record<string, string> = {
   email_already_exists:
