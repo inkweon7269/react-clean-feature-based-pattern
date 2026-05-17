@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseOAuthFragment } from '@/infrastructure/api/auth/oauthFragment';
+import { parseOAuthFragment } from '@/domain/auth/oauthFragment';
 
 describe('parseOAuthFragment', () => {
   it('정상 토큰 fragment를 login_success로 파싱한다', () => {

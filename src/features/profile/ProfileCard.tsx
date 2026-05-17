@@ -1,5 +1,5 @@
 import { Link, useSearch } from '@tanstack/react-router';
-import { isAxiosError } from 'axios';
+import { ApiError } from '@/infrastructure/api/apiClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { Button, buttonVariants } from '@/shared/ui/button';
@@ -55,7 +55,7 @@ export function ProfileCard() {
   const unlinkErrorMessage = (() => {
     if (!unlinkMutation.isError) return null;
     const e = unlinkMutation.error;
-    if (isAxiosError(e) && e.response?.status === 404) {
+    if (e instanceof ApiError && e.status === 404) {
       return '연결된 Google 계정이 없습니다.';
     }
     return e instanceof Error ? e.message : 'Google 계정 연결 해제에 실패했습니다.';

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from '@tanstack/react-router';
-import { parseOAuthFragment } from '@/infrastructure/api/auth/oauthFragment';
+import { parseOAuthFragment } from '@/domain/auth/oauthFragment';
 import { useAuthStore } from '@/infrastructure/store/auth/authStore';
 
 export function useOAuthCallback() {
