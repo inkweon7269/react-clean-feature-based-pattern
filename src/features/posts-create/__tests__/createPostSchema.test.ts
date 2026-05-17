@@ -20,6 +20,15 @@ describe('createPostSchema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('공백만 있는 제목을 거부한다', () => {
+    const result = createPostSchema.safeParse({
+      title: '   ',
+      content: '내용',
+      isPublished: false,
+    });
+    expect(result.success).toBe(false);
+  });
+
   it('빈 내용을 거부한다', () => {
     const result = createPostSchema.safeParse({
       title: '제목',
