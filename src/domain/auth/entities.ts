@@ -33,3 +33,17 @@ export function isValidEmail(email: string): boolean {
 export function isValidPassword(password: string): boolean {
   return password.length >= 8;
 }
+
+export type OAuthErrorCode =
+  | 'email_already_exists'
+  | 'email_not_verified'
+  | 'link_conflict'
+  | 'unknown';
+
+export type OAuthCallbackResult =
+  | { kind: 'login_success'; tokens: AuthTokens }
+  | { kind: 'link_success' }
+  | { kind: 'error'; code: 'email_already_exists'; email: string }
+  | { kind: 'error'; code: 'email_not_verified' }
+  | { kind: 'error'; code: 'link_conflict' }
+  | { kind: 'error'; code: 'unknown' };

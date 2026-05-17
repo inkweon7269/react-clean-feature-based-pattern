@@ -107,6 +107,25 @@ export const handlers = [
     return HttpResponse.json(mockUser);
   }),
 
+  http.post('*/v1/auth/google/link', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+    return HttpResponse.json({
+      authorizationUrl:
+        'https://accounts.google.com/o/oauth2/v2/auth?client_id=mock&state=mock-state',
+    });
+  }),
+
+  http.delete('*/v1/auth/google/unlink', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // ─── Posts ───
 
   http.post('*/v1/posts', async ({ request }) => {

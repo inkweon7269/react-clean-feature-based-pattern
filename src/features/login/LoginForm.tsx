@@ -1,13 +1,26 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { loginSchema, type LoginFormValues } from './loginSchema';
 import { useLogin } from './useLogin';
+import { GoogleLoginButton } from '@/features/login/GoogleLoginButton';
+
+const oauthErrorMessages: Record<string, string> = {
+  email_already_exists:
+    '이미 가입된 이메일입니다. 비밀번호로 로그인해주세요.',
+  email_not_verified:
+    'Google 계정 이메일이 검증되지 않았습니다. 다른 계정으로 시도해주세요.',
+  unknown: '로그인 처리 중 오류가 발생했습니다.',
+};
 
 export function LoginForm() {
+  const search = useSearch({ from: '/login' });
+  const oauthError = search.error;
+  const prefilledEmail = search.email ?? '';
+
   const {
     register,
     handleSubmit,
@@ -15,7 +28,7 @@ export function LoginForm() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      email: prefilledEmail,
       password: '',
     },
   });
@@ -33,6 +46,15 @@ export function LoginForm() {
         <CardDescription>이메일과 비밀번호를 입력해주세요</CardDescription>
       </CardHeader>
       <CardContent>
+        {oauthError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {oauthErrorMessages[oauthError] ?? oauthErrorMessages.unknown}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
@@ -79,6 +101,17 @@ export function LoginForm() {
           >
             {loginMutation.isPending ? '로그인 중...' : '로그인'}
           </Button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">또는</span>
+            </div>
+          </div>
+
+          <GoogleLoginButton />
 
           <p className="text-sm text-center text-muted-foreground">
             아직 계정이 없으신가요?{' '}

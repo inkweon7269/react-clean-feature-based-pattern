@@ -63,4 +63,27 @@ describe('AuthApiRepository', () => {
 
     await expect(repo.logout()).resolves.toBeUndefined();
   });
+
+  it('인증된 상태에서 startGoogleLink는 authorizationUrl을 반환한다', async () => {
+    useAuthStore.getState().setTokens({
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+    });
+
+    const result = await repo.startGoogleLink();
+    expect(result.authorizationUrl).toMatch(/^https:\/\/accounts\.google\.com\//);
+  });
+
+  it('미인증 상태에서 startGoogleLink는 에러를 던진다', async () => {
+    await expect(repo.startGoogleLink()).rejects.toThrow();
+  });
+
+  it('인증된 상태에서 unlinkGoogle을 호출하면 정상 종료된다', async () => {
+    useAuthStore.getState().setTokens({
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+    });
+
+    await expect(repo.unlinkGoogle()).resolves.toBeUndefined();
+  });
 });

@@ -18,6 +18,16 @@ interface RetriableRequestConfig extends InternalAxiosRequestConfig {
   _skipAuth?: boolean;
 }
 
+export class ApiError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
@@ -78,7 +88,12 @@ apiClient.interceptors.response.use(
         originalConfig.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalConfig);
       } catch (refreshError) {
-        return Promise.reject(refreshError instanceof Error ? refreshError : new Error('인증이 만료되었습니다'));
+        if (refreshError instanceof ApiError) {
+          return Promise.reject(refreshError);
+        }
+        const message =
+          refreshError instanceof Error ? refreshError.message : '인증이 만료되었습니다';
+        return Promise.reject(new ApiError(message, 401));
       }
     }
 
@@ -89,6 +104,6 @@ apiClient.interceptors.response.use(
       message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
     }
 
-    return Promise.reject(new Error(message));
+    return Promise.reject(new ApiError(message, status));
   },
 );
