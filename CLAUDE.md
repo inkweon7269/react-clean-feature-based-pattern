@@ -108,6 +108,64 @@ TanStack Router 코드 기반 라우팅 (`src/router/`). 파일 기반 라우팅
 - 인증 가드는 `beforeLoad`에서 `useAuthStore.getState()`로 확인
 - 인증 토큰은 쿠키에 저장 (zustand persist + js-cookie)
 
+## 브랜치 정책
+
+### 결정 트리
+
+```
+[1] 원격에 dev 브랜치가 존재하는가?
+    ├─ NO  → base = main
+    └─ YES → 작업 성격 분류:
+              ├─ feat/refactor/chore/docs/test/style/fix(일반)  → base = dev
+              └─ hotfix (운영 장애 / 보안 패치 / SLA)            → base = main
+```
+
+판정 자동화 명령:
+```bash
+git ls-remote --heads origin dev | wc -l
+# 결과 0 = dev 없음(base=main), 1 = dev 있음(작업 성격으로 분류)
+```
+
+### 워크트리 표준 명령
+
+```bash
+branch="feat/{기능명}"
+dir="../$(echo "$branch" | tr '/' '-')"   # e.g. ../feat-auth-profile-edit
+base="main"  # 또는 "dev" (결정 트리 참조)
+
+git worktree add -b "$branch" "$dir" "origin/$base"
+cd "$dir" && pnpm install
+```
+
+> **경로 컨벤션**: 워크트리는 저장소 부모 디렉토리에 **브랜치 이름 그대로(슬래시는 dash 변환)** 생성한다. `worktrees/` 같은 중간 디렉토리는 사용하지 않는다.
+
+### git-ignored 필수 파일 복사 체크리스트
+
+워크트리 생성 직후 아래 파일을 수동 복사해야 개발 서버가 정상 동작한다.
+
+| 파일 | 필수 여부 | 비고 |
+|---|---|---|
+| `.env.development` | **필수** | Vite dev 서버 API baseURL |
+| `.env.production` | **필수** | 프로덕션 빌드 API baseURL |
+| `.claude/settings.local.json` | 선택 | Agent Teams 사용 시만 필요 |
+
+```bash
+cp .env.development "$dir/"
+cp .env.production  "$dir/"
+```
+
+### 단일 에이전트 vs 멀티 에이전트 팀 운영
+
+| 상황 | 권장 패턴 |
+|---|---|
+| 소규모 수정 (1~2 파일) | 단일 에이전트 (리더 직접) |
+| 신규 도메인 추가 | 멀티 에이전트 팀 (시나리오 A), **Phase별 단일 워크트리** 공유 |
+| 대형 기능 (Phase 간 완전 독립) | Phase별 별도 워크트리 생성 고려 |
+
+> **멀티 에이전트 팀의 기본 패턴**: 팀원들은 동일 워크트리(`feat/*`)에서 직렬 Phase로 작업.  
+> Phase 간 의존성이 없는 대형 기능에서만 Phase별 별도 워크트리를 생성하되,  
+> 워크트리 수는 최소화(컨텍스트 분산 방지).
+
 ## Agent Teams (실험)
 
 [Claude Code Agent Teams](https://code.claude.com/docs/ko/agent-teams) 실험 기능이 활성화되어 있다. 설정은 개인 단위(`.claude/settings.local.json`)이며 `teammateMode: "tmux"`로 분할 창 모드 사용.

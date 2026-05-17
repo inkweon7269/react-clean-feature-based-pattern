@@ -66,3 +66,62 @@ Phase T: 각 레이어 테스트                          → test-engineer (Pha
 - **수신**: 리더로부터 기능 요구사항 1회
 - **발신**: 리더에게 산출물 경로 + 권장 팀 구성 (예: "Phase 1~3은 domain-modeler 1명, Phase 4~9는 feature-builder 1명, 테스트는 test-engineer 1명")
 - **작업 요청 범위**: PRD/TASKS 작성 task만 자체 수행. 다른 Phase task는 요청하지 않음
+
+## 브랜치/워크트리 결정
+
+### 결정 트리
+
+```
+[1] 원격에 dev 브랜치가 존재하는가?
+    ├─ NO  → base = main
+    └─ YES → 작업 성격 분류:
+              ├─ feat/refactor/chore/docs/test/style/fix(일반)  → base = dev
+              └─ hotfix (운영 장애 / 보안 패치 / SLA)            → base = main
+```
+
+### 판정 자동화 명령
+
+```bash
+# dev 브랜치 존재 여부 확인 (결과 0 = 없음, 1 = 있음)
+git ls-remote --heads origin dev | wc -l
+```
+
+### 워크트리 표준 명령
+
+```bash
+# base 결정 후 워크트리 생성
+branch="feat/{기능명}"
+dir="../$(echo "$branch" | tr '/' '-')"   # e.g. ../feat-auth-profile-edit
+base="main"  # 또는 "dev" (결정 트리 참조)
+
+git worktree add -b "$branch" "$dir" "origin/$base"
+cd "$dir" && pnpm install
+```
+
+> **경로 컨벤션**: 워크트리는 **저장소 부모 디렉토리에 브랜치 이름 그대로(슬래시는 dash 변환)** 생성한다. `worktrees/` 같은 중간 디렉토리는 사용하지 않는다 (이유: 경로가 짧고 브랜치-디렉토리 1:1 대응이 명확).
+
+### git-ignored 필수 파일 복사 체크리스트
+
+워크트리는 `.git`을 공유하지만 `.gitignore` 파일은 자동 복사되지 않는다.  
+워크트리 생성 직후 아래 파일을 수동 복사해야 개발 서버가 정상 동작한다.
+
+| 파일 | 필수 여부 | 비고 |
+|---|---|---|
+| `.env.development` | **필수** | Vite dev 서버 API baseURL |
+| `.env.production` | **필수** | 프로덕션 빌드 API baseURL |
+| `.claude/settings.local.json` | 선택 | Agent Teams (`teammateMode: "tmux"`) 사용 시만 필요 |
+
+```bash
+# 복사 명령 (메인 레포 경로 기준)
+cp /path/to/main-repo/.env.development "$dir/"
+cp /path/to/main-repo/.env.production  "$dir/"
+# Agent Teams 사용 시
+cp /path/to/main-repo/.claude/settings.local.json "$dir/.claude/"
+```
+
+### 산출물 목록 (갱신)
+
+feature-planner가 작성해야 하는 산출물:
+1. `_workspace/PRD_{기능명}.md` — PRD 본문
+2. `_workspace/TASKS_{기능명}.md` — task 표 (id / phase / owner / blockedBy / AC)
+3. `_workspace/GIT_SETUP_{기능명}.md` — 브랜치/워크트리 설정 기록 (base 결정 근거, 복사 완료 체크리스트, PR 후 정리 명령)
