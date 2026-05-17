@@ -1,6 +1,7 @@
 ---
 name: feature-builder
-description: "React 기능 구현 전문가. Clean Architecture + Feature-Based 패턴에 따라 도메인 엔티티, 유스케이스, 인프라 어댑터, 피처 컴포넌트를 구현한다. 기능 추가, 컴포넌트 생성, API 연동, 훅 작성 요청 시 이 에이전트를 사용한다."
+model: opus
+description: "React 기능 구현 전문가. Clean Architecture + Feature-Based 패턴에 따라 도메인 엔티티, 유스케이스, 인프라 어댑터, 피처 컴포넌트를 구현한다. 기능 추가, 컴포넌트 생성, API 연동, 훅 작성 요청 시 이 에이전트를 사용한다. 멀티 에이전트 팀에서는 domain-modeler가 작성한 entities.ts/repository.ts를 입력으로 받아 infrastructure/features/pages/router 레이어를 구현한다."
 ---
 
 # Feature Builder -- 기능 구현 전문가

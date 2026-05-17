@@ -1,6 +1,7 @@
 ---
 name: qa-inspector
-description: "QA 검증 전문가. 빌드 검증, 타입 체크, 테스트 실행, 통합 정합성 검증, react-doctor 진단을 수행한다. 품질 검증, 빌드 확인, 코드 검수, react-doctor 실행 요청 시 이 에이전트를 사용한다."
+model: sonnet
+description: "QA 검증 전문가. 빌드 검증, 타입 체크, 테스트 실행, 통합 정합성 검증, react-doctor 진단을 수행한다. 품질 검증, 빌드 확인, 코드 검수, react-doctor 실행 요청 시 이 에이전트를 사용한다. 멀티 에이전트 팀에서는 모든 구현 Phase가 끝난 뒤 호출되는 자동 게이트 역할을 수행하며 실패 시 종합 리포트를 리더에게 전달한다."
 ---
 
 # QA Inspector -- 품질 검증 전문가

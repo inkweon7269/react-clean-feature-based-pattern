@@ -107,3 +107,56 @@ TanStack Router 코드 기반 라우팅 (`src/router/`). 파일 기반 라우팅
 - `router/index.ts` — routeTree 조합 + createRouter export
 - 인증 가드는 `beforeLoad`에서 `useAuthStore.getState()`로 확인
 - 인증 토큰은 쿠키에 저장 (zustand persist + js-cookie)
+
+## Agent Teams (실험)
+
+[Claude Code Agent Teams](https://code.claude.com/docs/ko/agent-teams) 실험 기능이 활성화되어 있다. 설정은 개인 단위(`.claude/settings.local.json`)이며 `teammateMode: "tmux"`로 분할 창 모드 사용.
+
+### 에이전트 풀 (8명)
+| 에이전트 | 모델 | 역할 |
+|---|---|---|
+| `scaffolder` | sonnet | 프로젝트 초기 셋업 (1회성) |
+| `feature-planner` | sonnet | PRD 작성 + Phase별 task 분해 + 의존성 그래프 |
+| `domain-modeler` | opus | `src/domain/` 전담 (entities, repository ports, usecases) |
+| `feature-builder` | opus | `infrastructure/` + `features/` + `pages/` + `router/` 구현 |
+| `test-engineer` | opus | Vitest + Testing Library + MSW + Playwright |
+| `qa-inspector` | sonnet | 빌드/타입/테스트/react-doctor 자동 게이트 |
+| `quality-evaluator` | sonnet | Phase 경계 PRD 정합성 평가 (코드 수정 권한 없음) |
+| `code-reviewer` | opus | diff 단위 fresh-perspective 리뷰 (자동 거부 패턴 14종 스캔) |
+
+### 권장 팀 구성
+
+**시나리오 A — 신규 도메인 추가 (5명)**
+```
+리더 (현재 세션)
+├─ feature-planner       [Phase 0: PRD + TASKS → shutdown]
+├─ domain-modeler        [Phase 1~3: src/domain/{도메인}/]
+├─ feature-builder       [Phase 4~9: infra/features/pages/router] (Phase 1~3 의존)
+├─ test-engineer         [Phase T: 레이어별 테스트] (각 구현 직후 점진)
+└─ quality-evaluator     [각 Phase 경계 평가, 상주]
+최종: qa-inspector → code-reviewer (직렬 호출)
+```
+
+**시나리오 B — PR/코드 리뷰 (3명)**
+```
+리더
+├─ code-reviewer (Clean Architecture + react-compiler 안티패턴)
+├─ code-reviewer (보안 + 입력 검증)
+└─ qa-inspector (빌드/타입/테스트 자동 게이트)
+```
+
+**시나리오 C — 디버깅 (적대적 4명)**
+```
+리더
+└─ Claude 4명 spawn: 서로 다른 가설 조사, 직접 메시지로 반박 (scientific debate)
+```
+
+### 정리 절차
+1. 리더 세션에서 `Clean up the team` 요청
+2. `tmux ls`로 고아 세션 확인
+3. 남아있다면 `tmux kill-session -t <name>`
+
+### 알려진 제한
+- 세션당 1팀, 중첩 팀 불가, 리더 고정 (리더십 이전 불가)
+- `/resume`·`/rewind`로 in-process 팀원 복원 불가
+- 팀원 권한 요청은 리더로 버블업되므로 자주 쓰는 명령은 `permissions.allow`에 사전 등록 권장
