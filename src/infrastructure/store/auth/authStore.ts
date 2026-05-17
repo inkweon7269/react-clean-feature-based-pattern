@@ -38,10 +38,15 @@ export const useAuthStore = create<AuthState>()(
           return value ? JSON.parse(value) : null;
         },
         setItem: (name, value) => {
-          Cookies.set(name, JSON.stringify(value), { expires: 7, sameSite: 'Lax' });
+          Cookies.set(name, JSON.stringify(value), {
+            expires: 7,
+            sameSite: 'Lax',
+            secure: import.meta.env.PROD,
+            path: '/',
+          });
         },
         removeItem: (name) => {
-          Cookies.remove(name);
+          Cookies.remove(name, { path: '/' });
         },
       },
     },
