@@ -37,4 +37,22 @@ describe('registerSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('50자 이름은 통과시킨다', () => {
+    const result = registerSchema.safeParse({
+      email: 'user@example.com',
+      password: 'password123',
+      name: 'a'.repeat(50),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('51자 이름을 거부한다', () => {
+    const result = registerSchema.safeParse({
+      email: 'user@example.com',
+      password: 'password123',
+      name: 'a'.repeat(51),
+    });
+    expect(result.success).toBe(false);
+  });
 });
