@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { Button, buttonVariants } from '@/shared/ui/button';
@@ -15,7 +15,7 @@ export function CreatePostForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CreatePostFormValues>({
     resolver: zodResolver(createPostSchema),
@@ -25,7 +25,7 @@ export function CreatePostForm() {
   const createMutation = useCreatePost();
   const onSubmit = (data: CreatePostFormValues) => createMutation.mutate(data);
 
-  const isPublished = watch('isPublished');
+  const isPublished = useWatch({ control, name: 'isPublished' });
 
   return (
     <Card className="w-full max-w-3xl mx-auto">

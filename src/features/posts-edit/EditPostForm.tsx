@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { Button, buttonVariants } from '@/shared/ui/button';
@@ -21,7 +21,7 @@ export function EditPostForm({ id, initial }: EditPostFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<EditPostFormValues>({
     resolver: zodResolver(editPostSchema),
@@ -43,7 +43,7 @@ export function EditPostForm({ id, initial }: EditPostFormProps) {
     }
   };
 
-  const isPublished = watch('isPublished');
+  const isPublished = useWatch({ control, name: 'isPublished' });
   const isPending = updateMutation.isPending || deleteMutation.isPending;
 
   return (

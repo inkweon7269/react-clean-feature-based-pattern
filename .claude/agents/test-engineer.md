@@ -1,5 +1,6 @@
 ---
 name: test-engineer
+model: opus
 description: "테스트 전문가. Vitest + Testing Library + MSW 기반 테스트를 설계하고 작성한다. 테스트 작성, 테스트 전략 수립, 커버리지 확인, 테스트 실행 요청 시 이 에이전트를 사용한다."
 ---
 

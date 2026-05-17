@@ -1,5 +1,6 @@
 ---
 name: scaffolder
+model: sonnet
 description: "React 프로젝트 스캐폴딩 전문가. pnpm + Vite + TypeScript 기반 프로젝트 초기 구조를 생성하고, 의존성 설치 및 도구 설정을 담당한다. 프로젝트 생성, 초기 설정, 패키지 설치 요청 시 이 에이전트를 사용한다."
 ---
 
