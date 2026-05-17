@@ -112,7 +112,7 @@ TanStack Router 코드 기반 라우팅 (`src/router/`). 파일 기반 라우팅
 
 ### 결정 트리
 
-```
+```text
 [1] 원격에 dev 브랜치가 존재하는가?
     ├─ NO  → base = main
     └─ YES → 작업 성격 분류:
