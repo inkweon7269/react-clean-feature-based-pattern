@@ -13,6 +13,7 @@ export const registerSchema = z.object({
     .trim()
     .min(1, '이름을 입력해주세요')
     .max(50, '이름은 50자 이하여야 합니다'),
+  marketingConsent: z.boolean(),
 });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;

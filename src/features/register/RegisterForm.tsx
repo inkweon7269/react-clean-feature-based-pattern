@@ -1,8 +1,9 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { Checkbox } from '@/shared/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { registerSchema, type RegisterFormValues } from './registerSchema';
 import { useRegister } from './useRegister';
@@ -11,6 +12,7 @@ import { GoogleLoginButton } from '@/features/login/GoogleLoginButton';
 export function RegisterForm() {
   const {
     register: registerField,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
@@ -19,6 +21,7 @@ export function RegisterForm() {
       email: '',
       password: '',
       name: '',
+      marketingConsent: false,
     },
   });
 
@@ -80,6 +83,24 @@ export function RegisterForm() {
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
+
+          <Controller
+            control={control}
+            name="marketingConsent"
+            render={({ field }) => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="marketingConsent"
+                  checked={field.value}
+                  onCheckedChange={(checked) => field.onChange(checked)}
+                  onBlur={field.onBlur}
+                />
+                <label htmlFor="marketingConsent" className="text-sm font-medium">
+                  마케팅 정보 수신에 동의합니다 (선택)
+                </label>
+              </div>
+            )}
+          />
 
           {registerMutation.isError && (
             <p className="text-sm text-destructive">

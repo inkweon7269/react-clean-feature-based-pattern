@@ -9,18 +9,24 @@ describe('AuthApiRepository', () => {
     useAuthStore.getState().clearTokens();
   });
 
-  it('회원가입 요청 시 생성된 사용자 ID를 반환한다', async () => {
+  it('회원가입 요청 시 생성된 사용자 ID와 마케팅 동의 여부를 반환한다', async () => {
     const result = await repo.register({
       email: 'new@example.com',
       password: 'password123',
       name: '신규유저',
+      marketingConsent: true,
     });
-    expect(result).toEqual({ id: 1 });
+    expect(result).toEqual({ id: 1, marketingConsent: true });
   });
 
   it('이메일 중복 시 회원가입은 에러를 던진다', async () => {
     await expect(
-      repo.register({ email: 'duplicate@example.com', password: 'password123', name: '중복' }),
+      repo.register({
+        email: 'duplicate@example.com',
+        password: 'password123',
+        name: '중복',
+        marketingConsent: false,
+      }),
     ).rejects.toThrow();
   });
 
@@ -52,6 +58,7 @@ describe('AuthApiRepository', () => {
     expect(user).toHaveProperty('id');
     expect(user).toHaveProperty('email');
     expect(user).toHaveProperty('name');
+    expect(user).toHaveProperty('marketingConsent');
     expect(user).toHaveProperty('createdAt');
   });
 
