@@ -4,6 +4,7 @@ export const mockUser = {
   id: 1,
   email: 'user@example.com',
   name: '홍길동',
+  marketingConsent: true,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
@@ -48,11 +49,23 @@ function unauthorized() {
 
 export const handlers = [
   http.post('*/v1/auth/register', async ({ request }) => {
-    const body = (await request.json()) as { email: string; password: string; name: string };
+    const body = (await request.json()) as {
+      email: string;
+      password: string;
+      name: string;
+      marketingConsent?: boolean;
+    };
 
     if (!body.email || !body.password || !body.name) {
       return HttpResponse.json(
         { statusCode: 400, message: '필수 필드가 누락되었습니다', error: 'Bad Request' },
+        { status: 400 },
+      );
+    }
+
+    if (typeof body.marketingConsent !== 'boolean') {
+      return HttpResponse.json(
+        { statusCode: 400, message: ['marketingConsent must be a boolean value'], error: 'Bad Request' },
         { status: 400 },
       );
     }
@@ -64,7 +77,10 @@ export const handlers = [
       );
     }
 
-    return HttpResponse.json({ id: 1 }, { status: 201 });
+    return HttpResponse.json(
+      { id: 1, marketingConsent: body.marketingConsent },
+      { status: 201 },
+    );
   }),
 
   http.post('*/v1/auth/login', async ({ request }) => {

@@ -2,6 +2,7 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  marketingConsent: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,10 +21,12 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   name: string;
+  marketingConsent: boolean;
 }
 
 export interface RegisterResult {
   id: number;
+  marketingConsent: boolean;
 }
 
 export interface UpdateProfileInput {

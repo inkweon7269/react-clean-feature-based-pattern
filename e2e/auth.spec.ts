@@ -88,11 +88,12 @@ test.describe('인증 흐름 - 백엔드 API 연동', () => {
     const password = 'password123';
     const name = '홍길동';
 
-    // 1) 회원가입
+    // 1) 회원가입 (마케팅 수신 동의 포함)
     await page.goto('/register');
     await page.getByLabel('이메일').fill(email);
     await page.getByLabel('이름').fill(name);
     await page.getByLabel('비밀번호').fill(password);
+    await page.getByRole('checkbox', { name: '마케팅 정보 수신에 동의합니다 (선택)' }).click();
     await page.getByRole('button', { name: '회원가입' }).click();
 
     // 회원가입 성공 시 /login으로 리다이렉트
@@ -106,9 +107,10 @@ test.describe('인증 흐름 - 백엔드 API 연동', () => {
     // 로그인 성공 시 / (프로필)로 이동
     await expect(page).toHaveURL(/\/$/, { timeout: 10000 });
 
-    // 3) 프로필 정보 확인
+    // 3) 프로필 정보 확인 (마케팅 동의 상태 포함)
     await expect(page.getByText(name)).toBeVisible();
     await expect(page.getByText(email)).toBeVisible();
+    await expect(page.getByText('동의함')).toBeVisible();
 
     // 4) 로그아웃
     await page.getByRole('button', { name: '로그아웃' }).click();

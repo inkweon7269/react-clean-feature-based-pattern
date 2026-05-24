@@ -88,6 +88,10 @@ export function ProfileCard() {
           <span className="text-muted-foreground">가입일: </span>
           <span>{new Date(user.createdAt).toLocaleDateString('ko-KR')}</span>
         </div>
+        <div className="text-sm">
+          <span className="text-muted-foreground">마케팅 수신 동의: </span>
+          <span>{user.marketingConsent ? '동의함' : '동의 안 함'}</span>
+        </div>
 
         <Link
           to="/profile/edit"
