@@ -128,20 +128,23 @@ git ls-remote --heads origin dev | wc -l
 
 ### 워크트리 표준 명령
 
+워크트리 생성/정리는 **`start-worktree` / `finish-worktree` 스킬**로 수행한다 (env 복사·`pnpm install`·머지 검증까지 자동화). 수동으로 할 경우:
+
 ```bash
 branch="feat/{기능명}"
-dir="../$(echo "$branch" | tr '/' '-')"   # e.g. ../feat-auth-profile-edit
+name="$(echo "$branch" | tr '/' '-')"   # e.g. feat-auth-profile-edit
+dir=".claude/worktrees/$name"
 base="main"  # 또는 "dev" (결정 트리 참조)
 
 git worktree add -b "$branch" "$dir" "origin/$base"
 cd "$dir" && pnpm install
 ```
 
-> **경로 컨벤션**: 워크트리는 저장소 부모 디렉토리에 **브랜치 이름 그대로(슬래시는 dash 변환)** 생성한다. `worktrees/` 같은 중간 디렉토리는 사용하지 않는다.
+> **경로 컨벤션**: 워크트리는 레포 내부 **`.claude/worktrees/<name>`** 에 생성한다 (`<name>` = 브랜치명의 슬래시를 dash로 변환). 이 디렉토리는 `.gitignore`에 등록되어 메인 체크아웃의 `git status`를 더럽히지 않는다.
 
 ### git-ignored 필수 파일 복사 체크리스트
 
-워크트리 생성 직후 아래 파일을 수동 복사해야 개발 서버가 정상 동작한다.
+워크트리 생성 직후 아래 파일을 수동 복사해야 개발 서버가 정상 동작한다. (`start-worktree` 스킬은 자동 복사)
 
 | 파일 | 필수 여부 | 비고 |
 |---|---|---|
@@ -152,6 +155,7 @@ cd "$dir" && pnpm install
 ```bash
 cp .env.development "$dir/"
 cp .env.production  "$dir/"
+mkdir -p "$dir/.claude" && cp .claude/settings.local.json "$dir/.claude/" 2>/dev/null || true
 ```
 
 ### 단일 에이전트 vs 멀티 에이전트 팀 운영

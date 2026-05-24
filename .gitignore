@@ -20,6 +20,9 @@ coverage
 # Agent Teams scratch directory (PRD/TASKS/GIT_SETUP/EVAL 중간 산출물)
 _workspace/
 
+# Git worktrees (start-worktree 스킬이 생성)
+.claude/worktrees/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
