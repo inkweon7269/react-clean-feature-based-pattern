@@ -14,6 +14,14 @@ export const mockTokens = {
   refreshToken: 'mock-refresh-token',
 };
 
+interface MockTag {
+  id: number;
+  userId: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface MockPost {
   id: number;
   userId: number;
@@ -22,10 +30,14 @@ interface MockPost {
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
+  tags: MockTag[];
 }
 
 const mockPosts: MockPost[] = [];
 let nextPostId = 1;
+
+const mockTags: MockTag[] = [];
+let nextTagId = 1;
 
 const idempotencyCache = new Map<
   string,
@@ -40,11 +52,51 @@ export function resetMockPosts(): void {
   idempotencyCache.clear();
 }
 
+export function resetMockTags(): void {
+  mockTags.length = 0;
+  nextTagId = 1;
+  idempotencyCache.clear();
+}
+
+/** 테스트에서 사용자의 태그를 미리 시드한다. */
+export function seedMockTag(name: string): MockTag {
+  const now = new Date().toISOString();
+  const tag: MockTag = {
+    id: nextTagId++,
+    userId: mockUser.id,
+    name,
+    createdAt: now,
+    updatedAt: now,
+  };
+  mockTags.push(tag);
+  return tag;
+}
+
 function unauthorized() {
   return HttpResponse.json(
     { statusCode: 401, message: 'Unauthorized', error: 'Unauthorized' },
     { status: 401 },
   );
+}
+
+/**
+ * tagIds를 사용자 소유 태그로 해석한다. 소유하지 않은 id가 있으면 ownershipError.
+ * 백엔드 TagOwnershipValidator 동작을 모사한다.
+ */
+function resolveOwnedTags(
+  tagIds: number[] | undefined,
+): { tags: MockTag[] } | { ownershipError: true } {
+  if (!tagIds || tagIds.length === 0) {
+    return { tags: [] };
+  }
+  const uniqueIds = [...new Set(tagIds)];
+  const found = mockTags.filter(
+    (tag) => tag.userId === mockUser.id && uniqueIds.includes(tag.id),
+  );
+  if (found.length !== uniqueIds.length) {
+    return { ownershipError: true };
+  }
+  return { tags: found };
 }
 
 export const handlers = [
@@ -183,6 +235,173 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
+  // ─── Tags ───
+
+  http.post('*/v1/tags', async ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+
+    const idempotencyKey = request.headers.get('Idempotency-Key');
+    if (!idempotencyKey) {
+      return HttpResponse.json(
+        { statusCode: 400, message: 'Idempotency-Key header is required', error: 'Bad Request' },
+        { status: 400 },
+      );
+    }
+    if (!UUID_V4_REGEX.test(idempotencyKey)) {
+      return HttpResponse.json(
+        { statusCode: 400, message: 'Idempotency-Key must be a valid UUID', error: 'Bad Request' },
+        { status: 400 },
+      );
+    }
+    const cacheKey = `${request.method}:${new URL(request.url).pathname}:${idempotencyKey}`;
+    const cached = idempotencyCache.get(cacheKey);
+    if (cached) {
+      return HttpResponse.json(cached.body, { status: cached.statusCode });
+    }
+
+    const body = (await request.json()) as { name?: string };
+    const name = body.name?.trim();
+    if (!name) {
+      return HttpResponse.json(
+        { statusCode: 400, message: 'name은 필수입니다', error: 'Bad Request' },
+        { status: 400 },
+      );
+    }
+
+    if (mockTags.some((tag) => tag.userId === mockUser.id && tag.name === name)) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          message: `Tag with name '${name}' already exists`,
+          error: 'Conflict',
+        },
+        { status: 409 },
+      );
+    }
+
+    const tag = seedMockTag(name);
+    const responseBody = { id: tag.id };
+    idempotencyCache.set(cacheKey, { statusCode: 201, body: responseBody });
+    return HttpResponse.json(responseBody, { status: 201 });
+  }),
+
+  http.get('*/v1/tags', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get('page') ?? '1');
+    const limit = Number(url.searchParams.get('limit') ?? '10');
+
+    const filtered = mockTags
+      .filter((tag) => tag.userId === mockUser.id)
+      .slice()
+      .sort((a, b) => b.id - a.id);
+
+    const totalElements = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(totalElements / limit));
+    const start = (page - 1) * limit;
+    const items = filtered.slice(start, start + limit);
+
+    return HttpResponse.json({
+      items,
+      meta: {
+        page,
+        limit,
+        totalElements,
+        totalPages,
+        isFirst: page === 1,
+        isLast: page >= totalPages,
+      },
+    });
+  }),
+
+  http.get('*/v1/tags/:id', ({ request, params }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+    const id = Number(params.id);
+    const tag = mockTags.find((t) => t.id === id && t.userId === mockUser.id);
+    if (!tag) {
+      return HttpResponse.json(
+        { statusCode: 404, message: `Tag with ID ${id} not found`, error: 'Not Found' },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json(tag);
+  }),
+
+  http.patch('*/v1/tags/:id', async ({ request, params }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+    const id = Number(params.id);
+    const tag = mockTags.find((t) => t.id === id && t.userId === mockUser.id);
+    if (!tag) {
+      return HttpResponse.json(
+        { statusCode: 404, message: `Tag with ID ${id} not found`, error: 'Not Found' },
+        { status: 404 },
+      );
+    }
+    const body = (await request.json()) as { name?: string };
+    const name = body.name?.trim();
+    if (!name) {
+      return HttpResponse.json(
+        { statusCode: 400, message: 'name은 필수입니다', error: 'Bad Request' },
+        { status: 400 },
+      );
+    }
+    if (mockTags.some((t) => t.userId === mockUser.id && t.id !== id && t.name === name)) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          message: `Tag with name '${name}' already exists`,
+          error: 'Conflict',
+        },
+        { status: 409 },
+      );
+    }
+    tag.name = name;
+    tag.updatedAt = new Date().toISOString();
+    // 게시글에 연결된 태그 스냅샷도 갱신
+    for (const post of mockPosts) {
+      const linked = post.tags.find((t) => t.id === id);
+      if (linked) {
+        linked.name = name;
+        linked.updatedAt = tag.updatedAt;
+      }
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.delete('*/v1/tags/:id', ({ request, params }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return unauthorized();
+    }
+    const id = Number(params.id);
+    const idx = mockTags.findIndex((t) => t.id === id && t.userId === mockUser.id);
+    if (idx === -1) {
+      return HttpResponse.json(
+        { statusCode: 404, message: `Tag with ID ${id} not found`, error: 'Not Found' },
+        { status: 404 },
+      );
+    }
+    mockTags.splice(idx, 1);
+    // 삭제된 태그를 모든 게시글에서 제거
+    for (const post of mockPosts) {
+      post.tags = post.tags.filter((t) => t.id !== id);
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // ─── Posts ───
 
   http.post('*/v1/posts', async ({ request }) => {
@@ -204,7 +423,8 @@ export const handlers = [
         { status: 400 },
       );
     }
-    const cached = idempotencyCache.get(idempotencyKey);
+    const cacheKey = `${request.method}:${new URL(request.url).pathname}:${idempotencyKey}`;
+    const cached = idempotencyCache.get(cacheKey);
     if (cached) {
       return HttpResponse.json(cached.body, { status: cached.statusCode });
     }
@@ -213,11 +433,24 @@ export const handlers = [
       title: string;
       content: string;
       isPublished?: boolean;
+      tagIds?: number[];
     };
 
     if (!body.title || !body.content) {
       return HttpResponse.json(
         { statusCode: 400, message: 'title과 content는 필수입니다', error: 'Bad Request' },
+        { status: 400 },
+      );
+    }
+
+    const resolved = resolveOwnedTags(body.tagIds);
+    if ('ownershipError' in resolved) {
+      return HttpResponse.json(
+        {
+          statusCode: 400,
+          message: 'One or more tags do not exist or are not owned by the user',
+          error: 'Bad Request',
+        },
         { status: 400 },
       );
     }
@@ -242,11 +475,12 @@ export const handlers = [
       isPublished: body.isPublished ?? false,
       createdAt: now,
       updatedAt: now,
+      tags: resolved.tags,
     };
     mockPosts.push(post);
 
     const responseBody = { id: post.id };
-    idempotencyCache.set(idempotencyKey, { statusCode: 201, body: responseBody });
+    idempotencyCache.set(cacheKey, { statusCode: 201, body: responseBody });
     return HttpResponse.json(responseBody, { status: 201 });
   }),
 
@@ -262,10 +496,15 @@ export const handlers = [
     const isPublishedRaw = url.searchParams.get('isPublished');
     const isPublished =
       isPublishedRaw === null ? undefined : isPublishedRaw === 'true';
+    const tagIdRaw = url.searchParams.get('tagId');
+    const tagId = tagIdRaw === null ? undefined : Number(tagIdRaw);
 
     let filtered = mockPosts.filter((p) => p.userId === mockUser.id);
     if (isPublished !== undefined) {
       filtered = filtered.filter((p) => p.isPublished === isPublished);
+    }
+    if (tagId !== undefined) {
+      filtered = filtered.filter((p) => p.tags.some((t) => t.id === tagId));
     }
     filtered = filtered.slice().sort((a, b) => b.id - a.id);
 
@@ -320,7 +559,24 @@ export const handlers = [
       title: string;
       content: string;
       isPublished: boolean;
+      tagIds?: number[];
     };
+
+    if (body.tagIds !== undefined) {
+      const resolved = resolveOwnedTags(body.tagIds);
+      if ('ownershipError' in resolved) {
+        return HttpResponse.json(
+          {
+            statusCode: 400,
+            message: 'One or more tags do not exist or are not owned by the user',
+            error: 'Bad Request',
+          },
+          { status: 400 },
+        );
+      }
+      post.tags = resolved.tags;
+    }
+
     post.title = body.title;
     post.content = body.content;
     post.isPublished = body.isPublished;

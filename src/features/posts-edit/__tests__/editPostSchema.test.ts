@@ -7,6 +7,7 @@ describe('editPostSchema', () => {
       title: '제목',
       content: '내용',
       isPublished: true,
+      tagIds: [1, 2],
     });
     expect(result.success).toBe(true);
   });
@@ -16,6 +17,7 @@ describe('editPostSchema', () => {
       title: '',
       content: '내용',
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(false);
   });
@@ -25,6 +27,7 @@ describe('editPostSchema', () => {
       title: '   ',
       content: '내용',
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(false);
   });
@@ -34,8 +37,19 @@ describe('editPostSchema', () => {
       title: '제목',
       content: '',
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(false);
+  });
+
+  it('빈 태그 목록을 통과시킨다', () => {
+    const result = editPostSchema.safeParse({
+      title: '제목',
+      content: '내용',
+      isPublished: false,
+      tagIds: [],
+    });
+    expect(result.success).toBe(true);
   });
 
   it('200자 제목은 통과시킨다', () => {
@@ -43,6 +57,7 @@ describe('editPostSchema', () => {
       title: 'a'.repeat(200),
       content: '내용',
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(true);
   });
@@ -52,6 +67,7 @@ describe('editPostSchema', () => {
       title: 'a'.repeat(201),
       content: '내용',
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(false);
   });
@@ -61,6 +77,7 @@ describe('editPostSchema', () => {
       title: '제목',
       content: 'a'.repeat(10_000),
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(true);
   });
@@ -70,6 +87,7 @@ describe('editPostSchema', () => {
       title: '제목',
       content: 'a'.repeat(10_001),
       isPublished: false,
+      tagIds: [],
     });
     expect(result.success).toBe(false);
   });

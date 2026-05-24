@@ -104,6 +104,10 @@ export function ProfileCard() {
           내 게시글 보기
         </Link>
 
+        <Link to="/tags" className={buttonVariants({ variant: 'outline' }) + ' w-full'}>
+          태그 관리
+        </Link>
+
         <div className="border-t pt-3 mt-2 space-y-2">
           <p className="text-sm font-medium">Google 계정 관리</p>
           <Button

@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { PostsApiRepository } from '../PostsApiRepository';
 import { useAuthStore } from '@/infrastructure/store/auth/authStore';
 import { server } from '@/test/mocks/server';
-import { resetMockPosts } from '@/test/mocks/handlers';
+import { resetMockPosts, resetMockTags, seedMockTag } from '@/test/mocks/handlers';
 
 const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -12,6 +12,7 @@ describe('PostsApiRepository', () => {
 
   beforeEach(() => {
     resetMockPosts();
+    resetMockTags();
     useAuthStore.getState().setTokens({
       accessToken: 'mock-access-token',
       refreshToken: 'mock-refresh-token',
@@ -133,6 +134,63 @@ describe('PostsApiRepository', () => {
 
     it('존재하지 않는 id를 삭제하면 404 에러를 던진다', async () => {
       await expect(repo.delete(9999)).rejects.toThrow();
+    });
+  });
+
+  describe('태그 연동', () => {
+    it('tagIds로 생성하면 게시글에 태그가 연결된다', async () => {
+      const tagA = seedMockTag('react');
+      const tagB = seedMockTag('typescript');
+
+      const { id } = await repo.create({
+        title: 'tagged',
+        content: 'x',
+        tagIds: [tagA.id, tagB.id],
+      });
+      const post = await repo.getById(id);
+
+      expect(post.tags.map((t) => t.name).sort()).toEqual(['react', 'typescript']);
+    });
+
+    it('태그 없이 생성하면 빈 배열을 반환한다', async () => {
+      const { id } = await repo.create({ title: 'no-tags', content: 'x' });
+      const post = await repo.getById(id);
+      expect(post.tags).toEqual([]);
+    });
+
+    it('소유하지 않은 태그 id로 생성하면 400 에러를 던진다', async () => {
+      await expect(
+        repo.create({ title: 'bad-tag', content: 'x', tagIds: [9999] }),
+      ).rejects.toThrow();
+    });
+
+    it('수정 시 tagIds를 전달하면 기존 태그를 대체한다', async () => {
+      const tagA = seedMockTag('a');
+      const tagB = seedMockTag('b');
+      const { id } = await repo.create({ title: 'replace', content: 'x', tagIds: [tagA.id] });
+
+      await repo.update(id, {
+        title: 'replace',
+        content: 'x',
+        isPublished: false,
+        tagIds: [tagB.id],
+      });
+      const post = await repo.getById(id);
+
+      expect(post.tags.map((t) => t.id)).toEqual([tagB.id]);
+    });
+
+    it('tagId 필터로 해당 태그가 연결된 게시글만 조회한다', async () => {
+      const tagA = seedMockTag('a');
+      const tagB = seedMockTag('b');
+      await repo.create({ title: 'p1', content: 'x', tagIds: [tagA.id] });
+      await repo.create({ title: 'p2', content: 'y', tagIds: [tagB.id] });
+      await repo.create({ title: 'p3', content: 'z', tagIds: [tagA.id] });
+
+      const filtered = await repo.findAllPaginated({ page: 1, limit: 10, tagId: tagA.id });
+
+      expect(filtered.items).toHaveLength(2);
+      expect(filtered.items.every((p) => p.tags.some((t) => t.id === tagA.id))).toBe(true);
     });
   });
 });

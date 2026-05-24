@@ -29,6 +29,7 @@ export class PostsApiRepository implements PostsRepository {
         page: params.page,
         limit: params.limit,
         ...(params.isPublished !== undefined && { isPublished: params.isPublished }),
+        ...(params.tagId !== undefined && { tagId: params.tagId }),
       },
     });
     return data;

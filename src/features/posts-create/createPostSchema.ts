@@ -11,6 +11,7 @@ export const createPostSchema = z.object({
     .min(1, '내용을 입력해주세요')
     .max(10_000, '내용은 10,000자 이하여야 합니다'),
   isPublished: z.boolean(),
+  tagIds: z.array(z.number()),
 });
 
 export type CreatePostFormValues = z.infer<typeof createPostSchema>;

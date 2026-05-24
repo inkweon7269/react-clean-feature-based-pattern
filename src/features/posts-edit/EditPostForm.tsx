@@ -7,13 +7,14 @@ import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { TagMultiSelect } from '@/shared/TagMultiSelect';
 import { editPostSchema, type EditPostFormValues } from './editPostSchema';
 import { useUpdatePost } from './useUpdatePost';
 import { useDeletePost } from './useDeletePost';
 
 interface EditPostFormProps {
   id: number;
-  initial: { title: string; content: string; isPublished: boolean };
+  initial: { title: string; content: string; isPublished: boolean; tagIds: number[] };
 }
 
 export function EditPostForm({ id, initial }: EditPostFormProps) {
@@ -29,6 +30,7 @@ export function EditPostForm({ id, initial }: EditPostFormProps) {
       title: initial.title,
       content: initial.content,
       isPublished: initial.isPublished,
+      tagIds: initial.tagIds,
     },
   });
 
@@ -44,6 +46,7 @@ export function EditPostForm({ id, initial }: EditPostFormProps) {
   };
 
   const isPublished = useWatch({ control, name: 'isPublished' });
+  const tagIds = useWatch({ control, name: 'tagIds' });
   const isPending = updateMutation.isPending || deleteMutation.isPending;
 
   return (
@@ -66,6 +69,15 @@ export function EditPostForm({ id, initial }: EditPostFormProps) {
             {errors.content && (
               <p className="text-sm text-destructive">{errors.content.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>태그</Label>
+            <TagMultiSelect
+              value={tagIds}
+              onChange={(next) => setValue('tagIds', next)}
+              disabled={isPending}
+            />
           </div>
 
           <div className="flex items-center gap-2">

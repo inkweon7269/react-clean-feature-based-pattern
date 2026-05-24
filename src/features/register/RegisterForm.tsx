@@ -1,4 +1,4 @@
-import { Controller, useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/shared/ui/button';
@@ -13,6 +13,7 @@ export function RegisterForm() {
   const {
     register: registerField,
     control,
+    setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
@@ -26,6 +27,8 @@ export function RegisterForm() {
   });
 
   const registerMutation = useRegister();
+
+  const marketingConsent = useWatch({ control, name: 'marketingConsent' });
 
   const onSubmit = (data: RegisterFormValues) => {
     registerMutation.mutate(data);
@@ -84,23 +87,16 @@ export function RegisterForm() {
             )}
           </div>
 
-          <Controller
-            control={control}
-            name="marketingConsent"
-            render={({ field }) => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="marketingConsent"
-                  checked={field.value}
-                  onCheckedChange={(checked) => field.onChange(checked)}
-                  onBlur={field.onBlur}
-                />
-                <label htmlFor="marketingConsent" className="text-sm font-medium">
-                  마케팅 정보 수신에 동의합니다 (선택)
-                </label>
-              </div>
-            )}
-          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="marketingConsent"
+              checked={marketingConsent}
+              onCheckedChange={(checked) => setValue('marketingConsent', checked === true)}
+            />
+            <label htmlFor="marketingConsent" className="text-sm font-medium">
+              마케팅 정보 수신에 동의합니다 (선택)
+            </label>
+          </div>
 
           {registerMutation.isError && (
             <p className="text-sm text-destructive">
