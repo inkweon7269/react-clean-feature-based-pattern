@@ -44,6 +44,7 @@ description: "diff 단위 fresh-perspective 코드 리뷰 전문가. `git diff m
 - 도메인 횡단 타입을 도메인별로 중복 정의 (→ `domain/common/`으로 추출)
 - UseCase 없이 features 훅에 비즈니스 로직이 누적된 경우
 - MSW 핸들러 누락으로 테스트가 실제 네트워크에 의존하는 경우
+- 폼에서 `Controller` 사용 (→ 네이티브 input은 `register`, 체크박스·커스텀 컴포넌트는 `useWatch`+`setValue`로 통일. CLAUDE.md "폼(Form) 처리" 참조)
 - TanStack Query 키가 Query Key Factory를 우회하고 인라인으로 작성된 경우
 - 인증 가드 누락 (보호 라우트에 `beforeLoad` 미설정)
 

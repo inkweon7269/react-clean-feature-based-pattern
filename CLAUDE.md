@@ -91,6 +91,19 @@ Clean Architecture + Feature-Based 조합 패턴. 의존성 방향: `domain ← 
 
 react-compiler가 적용되어 있으므로 `useMemo`, `useCallback`, `React.memo`를 수동으로 사용하지 않는다. 컴파일러가 자동으로 메모이제이션을 처리한다.
 
+## 폼(Form) 처리
+
+react-hook-form + zod(`zodResolver`)로 작성한다. 필드 바인딩은 한 가지 방식으로 통일한다.
+
+- **네이티브 input/textarea** (텍스트·이메일·비밀번호·제목·내용 등) → `{...register('field')}`
+- **체크박스·커스텀 컴포넌트** (shadcn `Checkbox`, 커스텀 멀티셀렉트 등) → `useWatch({ control, name })`로 읽고 `setValue('field', value)`로 쓴다
+- **`Controller`는 사용하지 않는다** — `register` + `useWatch`/`setValue` 조합으로 통일 (코드베이스 일관성)
+- 에러 표시는 `formState.errors.{field}?.message`
+
+### base-ui Input 초기화 주의
+
+shadcn `Input`(`@base-ui/react`)은 비제어 모드에서 RHF `reset()`/`setValue()`가 **DOM 표시값을 갱신하지 못한다** (react-compiler 조합 이슈). 대부분의 폼은 제출 성공 후 페이지를 이동(언마운트)하므로 무관하지만, **화면에 머무르며 입력란을 비워야 하는 폼**(예: 인라인 생성 폼)은 `reset()`과 함께 입력 요소에 증가하는 `key`를 주어 **remount**로 초기화한다.
+
 ## 테스트 전략
 
 - **Domain 테스트** (`src/test/domain/`) — Entity 순수 함수 테스트, React 환경 불필요. UseCase가 도입되면 mock repository로 단위 테스트 가능
