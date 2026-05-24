@@ -37,9 +37,15 @@ export function TagListItem({ tag }: TagListItemProps) {
       setError(parsed.error.issues[0]?.message ?? '잘못된 입력입니다');
       return;
     }
+    setError(null);
     updateMutation.mutate(
       { name: parsed.data.name },
-      { onSuccess: () => setIsEditing(false) },
+      {
+        onSuccess: () => {
+          setError(null);
+          setIsEditing(false);
+        },
+      },
     );
   };
 

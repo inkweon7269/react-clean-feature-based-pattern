@@ -256,7 +256,8 @@ export const handlers = [
         { status: 400 },
       );
     }
-    const cached = idempotencyCache.get(idempotencyKey);
+    const cacheKey = `${request.method}:${new URL(request.url).pathname}:${idempotencyKey}`;
+    const cached = idempotencyCache.get(cacheKey);
     if (cached) {
       return HttpResponse.json(cached.body, { status: cached.statusCode });
     }
@@ -283,7 +284,7 @@ export const handlers = [
 
     const tag = seedMockTag(name);
     const responseBody = { id: tag.id };
-    idempotencyCache.set(idempotencyKey, { statusCode: 201, body: responseBody });
+    idempotencyCache.set(cacheKey, { statusCode: 201, body: responseBody });
     return HttpResponse.json(responseBody, { status: 201 });
   }),
 
@@ -357,6 +358,16 @@ export const handlers = [
         { status: 400 },
       );
     }
+    if (mockTags.some((t) => t.userId === mockUser.id && t.id !== id && t.name === name)) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          message: `Tag with name '${name}' already exists`,
+          error: 'Conflict',
+        },
+        { status: 409 },
+      );
+    }
     tag.name = name;
     tag.updatedAt = new Date().toISOString();
     // 게시글에 연결된 태그 스냅샷도 갱신
@@ -412,7 +423,8 @@ export const handlers = [
         { status: 400 },
       );
     }
-    const cached = idempotencyCache.get(idempotencyKey);
+    const cacheKey = `${request.method}:${new URL(request.url).pathname}:${idempotencyKey}`;
+    const cached = idempotencyCache.get(cacheKey);
     if (cached) {
       return HttpResponse.json(cached.body, { status: cached.statusCode });
     }
@@ -468,7 +480,7 @@ export const handlers = [
     mockPosts.push(post);
 
     const responseBody = { id: post.id };
-    idempotencyCache.set(idempotencyKey, { statusCode: 201, body: responseBody });
+    idempotencyCache.set(cacheKey, { statusCode: 201, body: responseBody });
     return HttpResponse.json(responseBody, { status: 201 });
   }),
 
