@@ -77,8 +77,13 @@ export const handlers = [
       );
     }
 
+    mockUser.email = body.email;
+    mockUser.name = body.name;
+    mockUser.marketingConsent = body.marketingConsent;
+    mockUser.updatedAt = new Date().toISOString();
+
     return HttpResponse.json(
-      { id: 1, marketingConsent: body.marketingConsent },
+      { id: mockUser.id, marketingConsent: mockUser.marketingConsent },
       { status: 201 },
     );
   }),
