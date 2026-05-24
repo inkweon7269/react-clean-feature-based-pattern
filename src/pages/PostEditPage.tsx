@@ -30,6 +30,7 @@ export function PostEditPage() {
             title: post.title,
             content: post.content,
             isPublished: post.isPublished,
+            tagIds: post.tags.map((tag) => tag.id),
           }}
         />
       )}

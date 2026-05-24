@@ -7,6 +7,7 @@ import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { TagMultiSelect } from '@/shared/TagMultiSelect';
 import { createPostSchema, type CreatePostFormValues } from './createPostSchema';
 import { useCreatePost } from './useCreatePost';
 
@@ -19,13 +20,14 @@ export function CreatePostForm() {
     formState: { errors, isSubmitting },
   } = useForm<CreatePostFormValues>({
     resolver: zodResolver(createPostSchema),
-    defaultValues: { title: '', content: '', isPublished: false },
+    defaultValues: { title: '', content: '', isPublished: false, tagIds: [] },
   });
 
   const createMutation = useCreatePost();
   const onSubmit = (data: CreatePostFormValues) => createMutation.mutate(data);
 
   const isPublished = useWatch({ control, name: 'isPublished' });
+  const tagIds = useWatch({ control, name: 'tagIds' });
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -52,6 +54,15 @@ export function CreatePostForm() {
             {errors.content && (
               <p className="text-sm text-destructive">{errors.content.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>태그</Label>
+            <TagMultiSelect
+              value={tagIds}
+              onChange={(next) => setValue('tagIds', next)}
+              disabled={createMutation.isPending}
+            />
           </div>
 
           <div className="flex items-center gap-2">

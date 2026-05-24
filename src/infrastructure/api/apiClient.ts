@@ -4,6 +4,7 @@ import { useAuthStore } from '@/infrastructure/store/auth/authStore';
 
 const IDEMPOTENT_ROUTES: ReadonlyArray<{ method: string; urlPattern: RegExp }> = [
   { method: 'post', urlPattern: /^\/v1\/posts\/?$/ },
+  { method: 'post', urlPattern: /^\/v1\/tags\/?$/ },
 ];
 
 function needsIdempotencyKey(method: string | undefined, url: string | undefined): boolean {

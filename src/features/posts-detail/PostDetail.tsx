@@ -49,6 +49,15 @@ export function PostDetail({ id }: PostDetailProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {post.tags.map((tag) => (
+              <Badge key={tag.id} variant="outline" className="text-sm">
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
+        )}
         <p className="whitespace-pre-wrap text-sm">{post.content}</p>
         <div className="flex justify-end gap-2">
           <Link to="/posts" className={buttonVariants({ variant: 'outline' })}>
